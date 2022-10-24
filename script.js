@@ -54,7 +54,8 @@ getData(mapUrl)
       tooltip.attr("data-education", (education.find(item=>item.fips===d.id)).bachelorsOrHigher)
       .style("left" , (event.pageX +15) + "px")
          .style("top" , (event.pageY +15) + "px")
-         .html(`<p>${(education.find(item=>item.fips===d.id)).bachelorsOrHigher}%</p>`)
+         .html(`<p>${(education.find(item=>item.fips===d.id)).area_name} : ${(education.find(item=>item.fips===d.id)).state}</p>
+         <p>Superior Education:${(education.find(item=>item.fips===d.id)).bachelorsOrHigher}%</p>`)
      
        
         d3.select(event.target).attr("opacity",0.2)
