@@ -22,3 +22,9 @@ background-color: rgba(0,0,0,0.6);
 padding: 0 5px;
 border-radius: 5px;
 }
+
+.states {
+ stroke-width: 1px;
+stroke: black;
+background-color: transparent;
+}

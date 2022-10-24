@@ -45,24 +45,27 @@ getData(mapUrl)
     const valuesAxis = d3.axisBottom(colorsValues)
                         .tickFormat(d => d + "%")
                         .ticks(6)
-        
+
+    const educationData= id => {
+      return education.find(item=>item.fips===id)
+    }    
 
     const mouseover=(event,d)=>{
-    
+      console.log(event)
       tooltip.transition().style("opacity",.9)
   
       tooltip.attr("data-education", (education.find(item=>item.fips===d.id)).bachelorsOrHigher)
       .style("left" , (event.pageX +15) + "px")
          .style("top" , (event.pageY +15) + "px")
-         .html(`<p>${(education.find(item=>item.fips===d.id)).area_name} : ${(education.find(item=>item.fips===d.id)).state}</p>
-         <p>Superior Education:${(education.find(item=>item.fips===d.id)).bachelorsOrHigher}%</p>`)
+         .html(`<p>${educationData(d.id).area_name} : ${educationData(d.id).state}</p>
+         <p>Superior Education:${educationData(d.id).bachelorsOrHigher}%</p>`)
      
        
         d3.select(event.target).attr("opacity",0.2)
     }; 
   
     const mouseout=(event)=> {
-  
+      
       tooltip.transition().style("opacity",0)
       d3.select(event.target).attr("opacity",1)
 
@@ -93,11 +96,21 @@ getData(mapUrl)
         .attr('class', 'county')
         .attr("stroke","gray")
         .attr("data-fips",(d)=> d.id)
-        .attr("data-education", d=> (education.find(item=>item.fips===d.id)).bachelorsOrHigher)
-        .attr("fill", d=> colors((education.find(item=>item.fips===d.id)).bachelorsOrHigher))
+        .attr("data-education", d=> educationData(d.id).bachelorsOrHigher)
+        .attr("fill", d=> colors(educationData(d.id).bachelorsOrHigher))
         .on("mouseover",mouseover)
         .on("mouseout",mouseout)
 
+
+    // svg.selectAll('.states')
+    //     .data(topojson.feature(m, m.objects.states) 
+    //            .features) 
+    //     .enter()
+    //     .append('path')
+    //     .attr('d', path)
+    //     .attr('class', 'states')
+    //     .attr("fill","transparent")
+        
 
     const legend=svg.append("g")
                     .attr("id","legend")
