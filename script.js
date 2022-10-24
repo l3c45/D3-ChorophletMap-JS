@@ -1,13 +1,12 @@
 const edUrl="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/for_user_education.json"
 const mapUrl="https://cdn.freecodecamp.org/testable-projects-fcc/data/choropleth_map/counties.json"
-const test="https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"
+
 let education
 let map
 
 async function getData(url) {
   try {
     const response = await axios.get(url)
- 
      return response.data
   } catch (error) {
     console.error(error);
@@ -23,51 +22,103 @@ getData(mapUrl)
 .catch(err=> console.log(err) )
 
 
-
   function render (m){
 
     const width=1200
-    const height=600
-
-// const projection = d3.geoMercator()
-//     .center([0, 50 ])
-    //    .scale(50)
-    //    .rotate([0,0]);
-
-    const svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
+    const height=700
     const path = d3.geoPath()
-      //  .projection(projection);
 
-    //var g = svg.append ("g")
+    const min=d3.min(education,d =>d.bachelorsOrHigher)
 
+    const max=d3.max(education,d =>d.bachelorsOrHigher)
+
+
+    const colors = d3.scaleQuantize()
+        .domain([min,max])
+        .range(["#f4af03","#ffb532","#ffc766","#ffda99",
+        "#ffeccc","#ffffff"]);
+            
+    const colorsValues = d3.scaleLinear()
+        .domain([min,max])
+        .range([0,195])
+    
+    const valuesAxis = d3.axisBottom(colorsValues)
+                        .tickFormat(d => d + "%")
+                        .ticks(6)
+        
+
+    const mouseover=(event,d)=>{
+    
+      tooltip.transition().style("opacity",.9)
+  
+      tooltip.attr("data-education", (education.find(item=>item.fips===d.id)).bachelorsOrHigher)
+      .style("left" , (event.pageX +15) + "px")
+         .style("top" , (event.pageY +15) + "px")
+         .html(`<p>${(education.find(item=>item.fips===d.id)).bachelorsOrHigher}%</p>`)
+     
+       
+        d3.select(event.target).attr("opacity",0.2)
+    }; 
+  
+    const mouseout=(event)=> {
+  
+      tooltip.transition().style("opacity",0)
+      d3.select(event.target).attr("opacity",1)
+
+    };
+
+
+    const tooltip=d3.select("body").append("div")
+                    .attr("id", "tooltip")
+                    .style("opacity", 0)
+    
+    const svg = d3.select("body").append("svg")
+                  .attr("width", width)
+                  .attr("height", height)
+                  .append ("g")
+                  .attr("transform", "translate(" + 150+ "," + 50+ ")")
+        
+    svg.append("text")
+       .text("Percentage of adults age 25 and older with a bachelor's degree or higher (2010-2014)")
+       .attr("transform", "translate(" + 150 + "," + 0+ ")")
+       .attr("id","description")
 
     svg.selectAll('path')
-    .data(topojson.feature(m, m.objects.counties) 
-    .features) 
-           .enter()
-           .append('path')
-           .attr('d', path)
-           .attr('fill', "gray")
-           .attr('class', 'county')
+        .data(topojson.feature(m, m.objects.counties) 
+               .features) 
+        .enter()
+        .append('path')
+        .attr('d', path)
+        .attr('class', 'county')
+        .attr("stroke","gray")
+        .attr("data-fips",(d)=> d.id)
+        .attr("data-education", d=> (education.find(item=>item.fips===d.id)).bachelorsOrHigher)
+        .attr("fill", d=> colors((education.find(item=>item.fips===d.id)).bachelorsOrHigher))
+        .on("mouseover",mouseover)
+        .on("mouseout",mouseout)
 
 
+    const legend=svg.append("g")
+                    .attr("id","legend")
+                    .attr("width", 100)
+                    .attr("height", 50)
+                    .attr("transform", "translate(" + 650 + "," +20+ ")")
+
+    legend.selectAll(".rects")
+          .data(d3.range(min,max,6))
+          .enter()
+          .append("rect")
+          .attr("y", 20)
+          .attr("height", 20)
+          .attr("x", (d,i)=> i*15)
+          .attr("width",15)
+          .attr("fill", d=>colors(d))
+    
+    legend.append("g")
+          .attr("id","colorAxis")
+          .attr("transform", "translate(0," + 40 + ")")
+          .call(valuesAxis)
 
 }
 
 
-/*
-const path = d3.geoPath(); //the method that does the actual drawing, which you'll call later
-
-    svg  
-      .selectAll("path")  // should be familiar, adding "path" for all data points, like adding 'rect'
-      .data(topojson.feature(data2, data2.objects.counties).features) // here you convert topojson data to geojson data. I have no idea how the math works. Topojson is like a 'compressed' version of geojson
-      .enter()
-      .append("path")
-      .attr("d", path)  // don't know what 'd' is, but it seems analogous to "x-y-cordinates", and path seems to tell the coordinates where to go using magical math
-
-
-
-      */
